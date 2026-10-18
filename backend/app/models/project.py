@@ -41,6 +41,9 @@ class Project(Base):
     )
     target_date = Column(DateTime(timezone=True), nullable=True)
     is_archived = Column(Boolean, default=False, nullable=False, index=True)
+    
+    version = Column(String(20), nullable=False, default="1.0")
+    parent_project_id = Column(String(36), ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
 
     created_by_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     
@@ -60,9 +63,11 @@ class Project(Base):
     created_by = relationship("User", foreign_keys=[created_by_id])
     sites = relationship("Site", back_populates="project", cascade="all, delete-orphan", order_by="Site.name")
     import_jobs = relationship("ImportJob", back_populates="project", cascade="all, delete-orphan", order_by="ImportJob.created_at.desc()")
+    decisions = relationship("WorkflowDecision", back_populates="project", cascade="all, delete-orphan", order_by="WorkflowDecision.created_at.desc()")
+    parent_project = relationship("Project", remote_side=[id], foreign_keys=[parent_project_id])
 
     def __repr__(self) -> str:
-        return f"<Project {self.reference} - {self.name} ({self.status.value})>"
+        return f"<Project {self.reference} v{self.version} - {self.name} ({self.status.value})>"
 
 
 class Site(Base):

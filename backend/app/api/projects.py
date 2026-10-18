@@ -18,6 +18,7 @@ from app.schemas.project import (
     LocationResponse
 )
 from app.api.deps import get_current_user, require_role
+from app.core.workflow_engine import verify_project_not_locked, invalidate_approvals_if_in_review
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -207,6 +208,11 @@ async def update_project(
             detail="Projet introuvable."
         )
 
+    verify_project_not_locked(project)
+
+    # Invalidate prior reviews if modified after submission
+    await invalidate_approvals_if_in_review(project, db, user_id=current_user.id)
+
     update_data = project_update.model_dump(exclude_unset=True)
     for field, val in update_data.items():
         setattr(project, field, val)
@@ -337,6 +343,8 @@ async def delete_project(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Projet introuvable."
         )
+
+    verify_project_not_locked(project)
 
     await db.delete(project)
     await db.commit()

@@ -84,6 +84,8 @@ class ProjectBase(BaseModel):
     lead_name: str = Field(..., min_length=2, max_length=100, description="Responsable technique principal")
     contributors: Optional[str] = None
     status: ProjectStatus = ProjectStatus.DRAFT
+    version: str = Field("1.0", max_length=20, description="Version du projet (ex: 1.0, 1.1)")
+    parent_project_id: Optional[str] = None
     document_language: DocumentLanguage = DocumentLanguage.FR
     target_date: Optional[datetime] = None
 

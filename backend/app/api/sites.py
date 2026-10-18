@@ -16,6 +16,7 @@ from app.schemas.project import (
     LocationResponse
 )
 from app.api.deps import get_current_user, require_role
+from app.core.workflow_engine import verify_project_not_locked, invalidate_approvals_if_in_review
 
 router = APIRouter(tags=["Sites & Locations"])
 
@@ -75,6 +76,9 @@ async def create_project_site(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Projet introuvable."
         )
+
+    verify_project_not_locked(project)
+    await invalidate_approvals_if_in_review(project, db, user_id=current_user.id)
 
     new_site = Site(
         project_id=project_id,

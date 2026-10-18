@@ -19,6 +19,7 @@ from app.schemas.network import (
     NetworkSegmentResponse
 )
 from app.api.deps import get_current_user, require_role
+from app.core.workflow_engine import verify_project_not_locked, invalidate_approvals_if_in_review
 
 router = APIRouter(tags=["Network & Interfaces"])
 
@@ -286,6 +287,9 @@ async def create_network_segment(
     project = (await db.execute(select(Project).where(Project.id == project_id))).scalars().first()
     if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projet introuvable.")
+
+    verify_project_not_locked(project)
+    await invalidate_approvals_if_in_review(project, db, user_id=current_user.id)
 
     # Validations
     if seg_in.vlan_id is not None and not is_valid_vlan(seg_in.vlan_id):

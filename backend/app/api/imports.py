@@ -24,6 +24,7 @@ from app.core.parsers.tabular import (
 )
 from app.core.parsers.cisco import parse_cisco_ios
 from app.core.parsers.fortinet import parse_fortinet_cli
+from app.core.workflow_engine import verify_project_not_locked, invalidate_approvals_if_in_review
 
 router = APIRouter(prefix="/imports", tags=["Imports & Ingestion"])
 
@@ -311,6 +312,13 @@ async def apply_import_job(
     job = res.scalars().first()
     if not job:
         raise HTTPException(status_code=404, detail="Tâche d'import non trouvée")
+
+    # Check project lock
+    p_res = await db.execute(select(Project).where(Project.id == job.project_id))
+    project = p_res.scalars().first()
+    if project:
+        verify_project_not_locked(project)
+        await invalidate_approvals_if_in_review(project, db, user_id=current_user.id)
 
     if not job.preview_data or "items" not in job.preview_data:
         raise HTTPException(status_code=400, detail="Veuillez d'abord exécuter l'étape de prévisualisation.")

@@ -6,6 +6,7 @@ from app.models.network import Interface, InterfaceType, InterfaceMode, NetworkS
 from app.models.import_job import ImportJob
 from app.models.validation import ConsistencyReport, ConsistencyOverride
 from app.models.document import Document
+from app.models.workflow import WorkflowDecision, WorkflowAction
 
 __all__ = [
     "Base",
@@ -28,5 +29,7 @@ __all__ = [
     "ImportJob",
     "ConsistencyReport",
     "ConsistencyOverride",
-    "Document"
+    "Document",
+    "WorkflowDecision",
+    "WorkflowAction"
 ]

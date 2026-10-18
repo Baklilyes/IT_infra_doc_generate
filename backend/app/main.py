@@ -15,6 +15,7 @@ from app.api.imports import router as imports_router
 from app.api.validations import router as validations_router
 from app.api.diagrams import router as diagrams_router
 from app.api.documents import router as documents_router
+from app.api.workflow import router as workflow_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -64,6 +65,7 @@ app.include_router(imports_router, prefix=settings.API_PREFIX)
 app.include_router(validations_router, prefix=settings.API_PREFIX)
 app.include_router(diagrams_router, prefix=settings.API_PREFIX)
 app.include_router(documents_router, prefix=settings.API_PREFIX)
+app.include_router(workflow_router, prefix=settings.API_PREFIX)
 
 @app.get("/")
 async def root():

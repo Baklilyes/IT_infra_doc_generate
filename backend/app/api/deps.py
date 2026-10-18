@@ -56,4 +56,7 @@ def require_role(*allowed_roles: UserRole) -> Callable:
 require_admin = require_role(UserRole.ADMINISTRATOR)
 require_engineer = require_role(UserRole.ADMINISTRATOR, UserRole.ENGINEER)
 require_lead = require_role(UserRole.ADMINISTRATOR, UserRole.ENGINEER, UserRole.TECHNICAL_LEAD)
+require_technical_lead = require_role(UserRole.ADMINISTRATOR, UserRole.TECHNICAL_LEAD)
+require_final_validator = require_role(UserRole.ADMINISTRATOR, UserRole.FINAL_VALIDATOR)
 require_validator = require_role(UserRole.ADMINISTRATOR, UserRole.FINAL_VALIDATOR)
+

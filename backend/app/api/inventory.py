@@ -17,6 +17,7 @@ from app.schemas.inventory import (
     DuplicateFinding
 )
 from app.api.deps import get_current_user, require_role
+from app.core.workflow_engine import verify_project_not_locked, invalidate_approvals_if_in_review
 
 router = APIRouter(tags=["Inventory & Equipment"])
 
@@ -110,6 +111,9 @@ async def create_equipment(
     project = (await db.execute(select(Project).where(Project.id == project_id))).scalars().first()
     if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projet introuvable.")
+
+    verify_project_not_locked(project)
+    await invalidate_approvals_if_in_review(project, db, user_id=current_user.id)
 
     # 2. Validate IP format if provided
     if eq_in.management_ip and not is_valid_ipv4(eq_in.management_ip):
@@ -219,6 +223,12 @@ async def update_equipment(
     if not eq:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Équipement introuvable.")
 
+    # Check project lock & invalidate review if needed
+    project = (await db.execute(select(Project).where(Project.id == eq.project_id))).scalars().first()
+    if project:
+        verify_project_not_locked(project)
+        await invalidate_approvals_if_in_review(project, db, user_id=current_user.id)
+
     update_data = eq_update.model_dump(exclude_unset=True)
 
     if "management_ip" in update_data and update_data["management_ip"]:
@@ -248,6 +258,11 @@ async def delete_equipment(
     eq = (await db.execute(stmt)).scalars().first()
     if not eq:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Équipement introuvable.")
+
+    project = (await db.execute(select(Project).where(Project.id == eq.project_id))).scalars().first()
+    if project:
+        verify_project_not_locked(project)
+        await invalidate_approvals_if_in_review(project, db, user_id=current_user.id)
 
     await db.delete(eq)
     await db.commit()

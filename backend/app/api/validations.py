@@ -18,6 +18,7 @@ from app.schemas.validation import (
     CanPublishResponse
 )
 from app.core.consistency_engine import run_consistency_checks
+from app.core.workflow_engine import verify_project_not_locked
 
 router = APIRouter(prefix="/projects/{project_id}/validations", tags=["Consistency & Validation Engine"])
 
@@ -150,8 +151,11 @@ async def create_consistency_override(
     doit comporter un motif horodaté et nominatif.
     """
     p_res = await db.execute(select(Project).where(Project.id == project_id))
-    if not p_res.scalars().first():
+    project = p_res.scalars().first()
+    if not project:
         raise HTTPException(status_code=404, detail="Projet introuvable")
+
+    verify_project_not_locked(project)
 
     if not payload.justification or len(payload.justification.strip()) < 10:
         raise HTTPException(status_code=422, detail="Une justification détaillée d'au moins 10 caractères est obligatoire pour accorder une dérogation.")
