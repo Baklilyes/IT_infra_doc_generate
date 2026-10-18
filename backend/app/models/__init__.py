@@ -1,6 +1,8 @@
 from app.core.database import Base
 from app.models.user import User, UserRole
 from app.models.project import Project, Site, Location, ProjectStatus, DocumentLanguage
+from app.models.equipment import Equipment, EquipmentCategory, InstallationStatus, VerificationStatus
+from app.models.network import Interface, InterfaceType, InterfaceMode, NetworkSegment, ConfigurationParam
 
 __all__ = [
     "Base",
@@ -10,5 +12,14 @@ __all__ = [
     "Site",
     "Location",
     "ProjectStatus",
-    "DocumentLanguage"
+    "DocumentLanguage",
+    "Equipment",
+    "EquipmentCategory",
+    "InstallationStatus",
+    "VerificationStatus",
+    "Interface",
+    "InterfaceType",
+    "InterfaceMode",
+    "NetworkSegment",
+    "ConfigurationParam"
 ]
