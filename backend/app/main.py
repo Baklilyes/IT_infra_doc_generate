@@ -12,6 +12,7 @@ from app.api.inventory import router as inventory_router
 from app.api.network import router as network_router
 from app.api.configurations import router as configurations_router
 from app.api.imports import router as imports_router
+from app.api.validations import router as validations_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -58,6 +59,7 @@ app.include_router(inventory_router, prefix=settings.API_PREFIX)
 app.include_router(network_router, prefix=settings.API_PREFIX)
 app.include_router(configurations_router, prefix=settings.API_PREFIX)
 app.include_router(imports_router, prefix=settings.API_PREFIX)
+app.include_router(validations_router, prefix=settings.API_PREFIX)
 
 @app.get("/")
 async def root():

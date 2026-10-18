@@ -20,6 +20,10 @@ from app.schemas.import_job import (
     ImportUploadResponse, ImportPreviewRequest, ImportPreviewItem,
     ImportPreviewResponse, ImportApplyRequest, ImportApplyResponse, ImportJobResponse
 )
+from app.schemas.validation import (
+    FindingResponse, ConsistencyReportResponse,
+    ConsistencyOverrideCreate, ConsistencyOverrideResponse, CanPublishResponse
+)
 
 __all__ = [
     "UserBase", "UserCreate", "UserUpdate", "UserResponse",
@@ -33,5 +37,7 @@ __all__ = [
     "NetworkSegmentBase", "NetworkSegmentCreate", "NetworkSegmentUpdate", "NetworkSegmentResponse",
     "ConfigurationParamBase", "ConfigurationParamCreate", "ConfigurationParamUpdate", "ConfigurationParamResponse",
     "ImportUploadResponse", "ImportPreviewRequest", "ImportPreviewItem",
-    "ImportPreviewResponse", "ImportApplyRequest", "ImportApplyResponse", "ImportJobResponse"
+    "ImportPreviewResponse", "ImportApplyRequest", "ImportApplyResponse", "ImportJobResponse",
+    "FindingResponse", "ConsistencyReportResponse",
+    "ConsistencyOverrideCreate", "ConsistencyOverrideResponse", "CanPublishResponse"
 ]
