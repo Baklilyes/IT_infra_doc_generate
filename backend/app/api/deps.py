@@ -51,3 +51,9 @@ def require_role(*allowed_roles: UserRole) -> Callable:
             )
         return current_user
     return role_checker
+
+
+require_admin = require_role(UserRole.ADMINISTRATOR)
+require_engineer = require_role(UserRole.ADMINISTRATOR, UserRole.ENGINEER)
+require_lead = require_role(UserRole.ADMINISTRATOR, UserRole.ENGINEER, UserRole.TECHNICAL_LEAD)
+require_validator = require_role(UserRole.ADMINISTRATOR, UserRole.FINAL_VALIDATOR)

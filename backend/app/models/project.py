@@ -59,6 +59,7 @@ class Project(Base):
     # Relationships
     created_by = relationship("User", foreign_keys=[created_by_id])
     sites = relationship("Site", back_populates="project", cascade="all, delete-orphan", order_by="Site.name")
+    import_jobs = relationship("ImportJob", back_populates="project", cascade="all, delete-orphan", order_by="ImportJob.created_at.desc()")
 
     def __repr__(self) -> str:
         return f"<Project {self.reference} - {self.name} ({self.status.value})>"

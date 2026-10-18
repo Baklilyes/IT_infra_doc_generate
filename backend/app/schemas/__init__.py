@@ -16,6 +16,10 @@ from app.schemas.network import (
     NetworkSegmentBase, NetworkSegmentCreate, NetworkSegmentUpdate, NetworkSegmentResponse,
     ConfigurationParamBase, ConfigurationParamCreate, ConfigurationParamUpdate, ConfigurationParamResponse
 )
+from app.schemas.import_job import (
+    ImportUploadResponse, ImportPreviewRequest, ImportPreviewItem,
+    ImportPreviewResponse, ImportApplyRequest, ImportApplyResponse, ImportJobResponse
+)
 
 __all__ = [
     "UserBase", "UserCreate", "UserUpdate", "UserResponse",
@@ -27,5 +31,7 @@ __all__ = [
     "EquipmentBase", "EquipmentCreate", "EquipmentUpdate", "EquipmentResponse", "DuplicateFinding",
     "InterfaceBase", "InterfaceCreate", "InterfaceUpdate", "InterfaceResponse",
     "NetworkSegmentBase", "NetworkSegmentCreate", "NetworkSegmentUpdate", "NetworkSegmentResponse",
-    "ConfigurationParamBase", "ConfigurationParamCreate", "ConfigurationParamUpdate", "ConfigurationParamResponse"
+    "ConfigurationParamBase", "ConfigurationParamCreate", "ConfigurationParamUpdate", "ConfigurationParamResponse",
+    "ImportUploadResponse", "ImportPreviewRequest", "ImportPreviewItem",
+    "ImportPreviewResponse", "ImportApplyRequest", "ImportApplyResponse", "ImportJobResponse"
 ]

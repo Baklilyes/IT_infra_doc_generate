@@ -3,6 +3,7 @@ from app.models.user import User, UserRole
 from app.models.project import Project, Site, Location, ProjectStatus, DocumentLanguage
 from app.models.equipment import Equipment, EquipmentCategory, InstallationStatus, VerificationStatus
 from app.models.network import Interface, InterfaceType, InterfaceMode, NetworkSegment, ConfigurationParam
+from app.models.import_job import ImportJob
 
 __all__ = [
     "Base",
@@ -21,5 +22,6 @@ __all__ = [
     "InterfaceType",
     "InterfaceMode",
     "NetworkSegment",
-    "ConfigurationParam"
+    "ConfigurationParam",
+    "ImportJob"
 ]
