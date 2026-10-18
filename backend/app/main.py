@@ -6,6 +6,8 @@ from app.core.config import settings
 from app.core.database import Base, async_engine
 from app.api.auth import router as auth_router
 from app.api.health import router as health_router
+from app.api.projects import router as projects_router
+from app.api.sites import router as sites_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -46,6 +48,8 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Include Routers
 app.include_router(auth_router, prefix=settings.API_PREFIX)
 app.include_router(health_router, prefix=settings.API_PREFIX)
+app.include_router(projects_router, prefix=settings.API_PREFIX)
+app.include_router(sites_router, prefix=settings.API_PREFIX)
 
 @app.get("/")
 async def root():

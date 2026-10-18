@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth-context';
+import { apiFetch, Project } from '@/lib/api';
 import {
   FolderKanban,
   CheckCircle2,
@@ -19,24 +20,38 @@ import {
   ExternalLink,
   ShieldCheck,
   Calendar,
+  Building
 } from 'lucide-react';
 
 export default function DashboardPage() {
   const { t, locale } = useTranslation();
   const { user } = useAuth();
 
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
   // Top Filter state
   const [selectedDate, setSelectedDate] = useState('2026-10-18');
   const [selectedProject, setSelectedProject] = useState('all');
-  const [selectedSite, setSelectedSite] = useState('all');
   const [activeKpi, setActiveKpi] = useState('projects');
 
-  // Realistic empty state until projects are created in Lot 2
-  const projectsCount = 0;
-  const inValidationCount = 0;
-  const equipmentCount = 0;
-  const anomaliesCount = 0;
-  const publishedDocsCount = 0;
+  useEffect(() => {
+    apiFetch<Project[]>('/api/projects')
+      .then(setProjects)
+      .catch(() => setProjects([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Real metrics calculated from project data
+  const projectsCount = projects.length;
+  const inValidationCount = projects.filter(p => p.status === 'in_review').length;
+  const equipmentCount = 0; // populated in Lot 3
+  const anomaliesCount = 0; // populated in Lot 5
+  const publishedDocsCount = projects.filter(p => p.status === 'validated').length;
+
+  const filteredProjects = selectedProject === 'all'
+    ? projects.slice(0, 5)
+    : projects.filter(p => p.id === selectedProject);
 
   return (
     <div className="space-y-6">
@@ -65,22 +80,12 @@ export default function DashboardPage() {
             <select
               value={selectedProject}
               onChange={(e) => setSelectedProject(e.target.value)}
-              className="border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-700 bg-white outline-hidden focus:ring-1 focus:ring-blue-500 min-w-[180px]"
+              className="border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-700 bg-white outline-hidden focus:ring-1 focus:ring-blue-500 min-w-[200px]"
             >
-              <option value="all">Tous les projets</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-500 mb-1">
-              Site / Emplacement
-            </label>
-            <select
-              value={selectedSite}
-              onChange={(e) => setSelectedSite(e.target.value)}
-              className="border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-700 bg-white outline-hidden focus:ring-1 focus:ring-blue-500 min-w-[180px]"
-            >
-              <option value="all">Tous les sites</option>
+              <option value="all">Tous les projets ({projects.length})</option>
+              {projects.map(p => (
+                <option key={p.id} value={p.id}>{p.reference} - {p.name}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -91,7 +96,7 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* KPI Cards Row (inspired by reference layout with active borders) */}
+      {/* KPI Cards Row (matching reference layout with active borders) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Card 1: Projets */}
         <div
@@ -177,7 +182,7 @@ export default function DashboardPage() {
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-medium">Dossiers générés</p>
+              <p className="text-xs text-slate-500 font-medium">Dossiers validés</p>
               <p className="text-xl font-bold text-slate-900">{publishedDocsCount}</p>
             </div>
           </div>
@@ -288,7 +293,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Projects Table Placeholder */}
+      {/* Projects Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-900">
@@ -303,13 +308,56 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <div className="p-8 text-center text-slate-500">
-          <FolderKanban className="w-12 h-12 mx-auto text-slate-300 mb-2" />
-          <p className="text-sm font-medium text-slate-700">Aucun projet d'infrastructure pour l'instant</p>
-          <p className="text-xs text-slate-400 mt-1">
-            Les projets et sites pourront être créés et gérés dès le Lot 2.
-          </p>
-        </div>
+        {projects.length === 0 ? (
+          <div className="p-8 text-center text-slate-500">
+            <FolderKanban className="w-12 h-12 mx-auto text-slate-300 mb-2" />
+            <p className="text-sm font-medium text-slate-700">Aucun projet d'infrastructure pour l'instant</p>
+            <Link
+              href="/projects"
+              className="mt-3 inline-flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Créer un premier projet</span>
+            </Link>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th className="px-4 py-3">Référence</th>
+                  <th className="px-4 py-3">Nom du projet</th>
+                  <th className="px-4 py-3">Client</th>
+                  <th className="px-4 py-3">Sites</th>
+                  <th className="px-4 py-3">Statut</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {filteredProjects.map((p) => (
+                  <tr key={p.id} className="hover:bg-slate-50 transition">
+                    <td className="px-4 py-3 font-mono font-bold text-blue-700">
+                      <Link href={`/projects/${p.id}`} className="hover:underline">
+                        {p.reference}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-slate-900">
+                      <Link href={`/projects/${p.id}`} className="hover:text-blue-600">
+                        {p.name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">{p.client_name}</td>
+                    <td className="px-4 py-3 font-bold">{p.sites_count}</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-slate-100 text-slate-800 border-slate-200">
+                        {t(`projectStatus.${p.status}`)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
