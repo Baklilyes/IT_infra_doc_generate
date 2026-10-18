@@ -1,0 +1,95 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: infradoc_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-infradoc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-infradoc_secure_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-infradoc_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-infradoc} -d ${POSTGRES_DB:-infradoc_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - infradoc_net
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: infradoc_ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_models:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:11434/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - infradoc_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: infradoc_backend
+    restart: unless-stopped
+    env_file:
+      - .env.example
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-infradoc}:${POSTGRES_PASSWORD:-infradoc_secure_pass}@db:5432/${POSTGRES_DB:-infradoc_db}
+      DATABASE_URL_SYNC: postgresql://${POSTGRES_USER:-infradoc}:${POSTGRES_PASSWORD:-infradoc_secure_pass}@db:5432/${POSTGRES_DB:-infradoc_db}
+      OLLAMA_BASE_URL: http://ollama:11434
+      STORAGE_DIR: /app/storage
+      TEMPLATES_DIR: /app/templates
+    ports:
+      - "8000:8000"
+    volumes:
+      - storage_data:/app/storage
+      - ./templates:/app/templates:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - infradoc_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: infradoc_frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - infradoc_net
+
+volumes:
+  postgres_data:
+    name: infradoc_postgres_data
+  ollama_models:
+    name: infradoc_ollama_models
+  storage_data:
+    name: infradoc_storage_data
+
+networks:
+  infradoc_net:
+    name: infradoc_net
+    driver: bridge
