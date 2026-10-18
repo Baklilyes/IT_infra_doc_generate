@@ -5,6 +5,7 @@ from app.models.equipment import Equipment, EquipmentCategory, InstallationStatu
 from app.models.network import Interface, InterfaceType, InterfaceMode, NetworkSegment, ConfigurationParam
 from app.models.import_job import ImportJob
 from app.models.validation import ConsistencyReport, ConsistencyOverride
+from app.models.document import Document
 
 __all__ = [
     "Base",
@@ -26,5 +27,6 @@ __all__ = [
     "ConfigurationParam",
     "ImportJob",
     "ConsistencyReport",
-    "ConsistencyOverride"
+    "ConsistencyOverride",
+    "Document"
 ]

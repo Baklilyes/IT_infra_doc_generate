@@ -24,6 +24,7 @@ from app.schemas.validation import (
     FindingResponse, ConsistencyReportResponse,
     ConsistencyOverrideCreate, ConsistencyOverrideResponse, CanPublishResponse
 )
+from app.schemas.document import DocumentGenerateRequest, DocumentResponse, DocumentStatusResponse
 
 __all__ = [
     "UserBase", "UserCreate", "UserUpdate", "UserResponse",
@@ -39,5 +40,6 @@ __all__ = [
     "ImportUploadResponse", "ImportPreviewRequest", "ImportPreviewItem",
     "ImportPreviewResponse", "ImportApplyRequest", "ImportApplyResponse", "ImportJobResponse",
     "FindingResponse", "ConsistencyReportResponse",
-    "ConsistencyOverrideCreate", "ConsistencyOverrideResponse", "CanPublishResponse"
+    "ConsistencyOverrideCreate", "ConsistencyOverrideResponse", "CanPublishResponse",
+    "DocumentGenerateRequest", "DocumentResponse", "DocumentStatusResponse"
 ]

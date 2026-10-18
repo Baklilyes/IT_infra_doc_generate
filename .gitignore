@@ -48,6 +48,7 @@ yarn-error.log*
 # Storage & Uploads
 storage/*
 !storage/.gitkeep
+backend/generated_docs/
 brain/
 
 # OS & Editor
