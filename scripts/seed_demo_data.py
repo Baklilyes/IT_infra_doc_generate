@@ -12,6 +12,7 @@ from sqlalchemy import select, create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Ensure backend is on PYTHONPATH
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend")))
 
 from app.core.config import settings

@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 
 # Ensure backend is on PYTHONPATH
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend")))
 
 from sqlalchemy import select, text, create_engine

@@ -24,7 +24,7 @@ services:
     volumes:
       - ollama_models:/root/.ollama
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:11434/ || exit 1"]
+      test: ["CMD", "ollama", "list"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -38,7 +38,7 @@ services:
     container_name: infradoc_backend
     restart: unless-stopped
     env_file:
-      - .env.example
+      - .env
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432

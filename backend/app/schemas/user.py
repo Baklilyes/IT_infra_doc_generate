@@ -5,7 +5,7 @@ from app.models.user import UserRole
 
 class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr
+    email: str = Field(..., min_length=3, max_length=150)
     full_name: str = Field(..., min_length=2, max_length=100)
     role: UserRole = UserRole.ENGINEER
 
@@ -13,7 +13,7 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=128)
 
 class UserUpdate(BaseModel):
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     full_name: Optional[str] = None
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
