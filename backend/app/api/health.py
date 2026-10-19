@@ -45,16 +45,16 @@ async def health_check(db: AsyncSession = Depends(get_db)):
                 if resp.status_code == 200:
                     data = resp.json()
                     models = [m.get("name") for m in data.get("models", [])]
-                    # Check if configured model or model:tag exists
                     configured_model = settings.AI_MODEL_NAME
-                    model_found = any(
-                        configured_model in m or m.startswith(configured_model.split(":")[0])
-                        for m in models
+                    prefix = configured_model.split(":")[0]
+                    matching_model = next(
+                        (m for m in models if configured_model in m or m.startswith(prefix)),
+                        models[0] if models else None
                     )
-                    if model_found:
+                    if matching_model:
                         health["components"]["ai_runtime"] = {
                             "status": "operational",
-                            "model": settings.AI_MODEL_NAME,
+                            "model": matching_model,
                             "available_models": models
                         }
                     else:

@@ -26,6 +26,26 @@ async def check_ollama_status() -> dict[str, Any]:
     return {"online": False, "models": []}
 
 
+async def get_active_model(client: httpx.AsyncClient) -> str:
+    """Return configured model or best matching available model in Ollama."""
+    target = getattr(settings, "OLLAMA_MODEL", getattr(settings, "AI_MODEL_NAME", "qwen2.5-coder:7b"))
+    try:
+        res = await client.get(f"{settings.OLLAMA_BASE_URL}/api/tags")
+        if res.status_code == 200:
+            models = [m.get("name") for m in res.json().get("models", [])]
+            if target in models:
+                return target
+            prefix = target.split(":")[0]
+            matching = [m for m in models if prefix in m or m.startswith(prefix)]
+            if matching:
+                return matching[0]
+            if models:
+                return models[0]
+    except Exception:
+        pass
+    return target
+
+
 async def generate_narrative_section(
     section_type: str,  # 'hld_summary', 'lld_routing', 'commissioning'
     context: dict[str, Any],
@@ -91,11 +111,12 @@ async def generate_narrative_section(
 
     # 3. Attempt Ollama Query
     try:
-        async with httpx.AsyncClient(timeout=6.0) as client:
+        async with httpx.AsyncClient(timeout=25.0) as client:
+            active_model = await get_active_model(client)
             resp = await client.post(
                 f"{settings.OLLAMA_BASE_URL}/api/generate",
                 json={
-                    "model": settings.OLLAMA_MODEL,
+                    "model": active_model,
                     "prompt": prompt,
                     "stream": False,
                     "options": {
