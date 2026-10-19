@@ -2,7 +2,7 @@
 
 ## 1. Connexion et Gestion des Rôles
 
-L'application est accessible depuis n'importe quel navigateur sur le réseau d'entreprise à l'adresse configurée (ex: `http://<IP_SERVEUR>:3000`).
+L'application est accessible depuis n'importe quel navigateur sur le réseau d'entreprise à l'adresse configurée (ex: `http://<IP_SERVEUR>:3001`).
 
 ### 1.1 Comptes de Démonstration Disponibles
 | Rôle | Identifiant | Mot de passe | Usage principal |

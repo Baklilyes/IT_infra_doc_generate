@@ -5,7 +5,7 @@
 L'application **IT Infrastructure Documentation Generator (InfraDoc)** est spécialement conçue pour être déployée sur un serveur Linux d'entreprise au sein d'un réseau local interne (**air-gapped** ou réseau d'administration sans dépendance vis-à-vis d'un cloud public).
 
 L'architecture s'appuie sur des conteneurs Docker orchestrés via Docker Compose :
-- **infradoc_frontend :** Serveur d'interface Next.js / React / Tailwind CSS (Port interne 3000).
+- **infradoc_frontend :** Serveur d'interface Next.js / React / Tailwind CSS (Port interne 3001).
 - **infradoc_backend :** API FastAPI / Python 3.13 (Port interne 8000).
 - **infradoc_postgres :** Base de données relationnelle PostgreSQL 16 Alpine avec volume persistant (Port 5432 interne, non exposé publiquement).
 - **infradoc_ollama :** Runtime d'inférence d'IA locale Ollama (Port 11434 interne au réseau Docker).
@@ -138,7 +138,7 @@ docker compose exec backend python scripts/seed_demo_data.py
 ## 6. Exposition Réseau et Reverse Proxy
 
 Par défaut, l'application écoute sur :
-- **Frontend Web :** Port `3000` (ex: `http://192.168.10.50:3000`)
+- **Frontend Web :** Port `3001` (ex: `http://192.168.10.50:3001`)
 - **Backend API :** Port `8000` (ex: `http://192.168.10.50:8000/api/docs`)
 
 ### 6.1 Configuration Reverse Proxy Nginx Recommandée (HTTPS / TLS Interne)
@@ -164,7 +164,7 @@ server {
 
     # Frontend
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3001;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

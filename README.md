@@ -59,7 +59,7 @@ docker compose exec backend python scripts/seed_demo_data.py
 ```
 
 ### 3.2 Accès aux Interfaces
-- **Application Web (Frontend) :** `http://localhost:3000`
+- **Application Web (Frontend) :** `http://localhost:3001`
 - **Documentation API Interactive (OpenAPI / Swagger) :** `http://localhost:8000/api/docs`
 - **Diagnostic de Santé (Health Check) :** `http://localhost:8000/api/health`
 
