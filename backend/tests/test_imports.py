@@ -404,3 +404,33 @@ end
     cfgs = res_cfg.json()
     snmp_cfg = [c for c in cfgs if c["key"] == "snmp_community"][0]
     assert snmp_cfg["value"] == "<SECRET_MASQUÉ>"
+
+
+@pytest.mark.asyncio
+async def test_download_import_templates(client: AsyncClient, auth_tokens):
+    """Test downloading formatted Excel templates for equipment, segments, and complete."""
+    headers = {"Authorization": f"Bearer {auth_tokens['engineer']}"}
+
+    # 1. Equipment template
+    res_eq = await client.get("/api/imports/templates?type=equipment", headers=headers)
+    assert res_eq.status_code == 200
+    assert "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" in res_eq.headers["content-type"]
+    assert "template_inventaire_equipements.xlsx" in res_eq.headers["content-disposition"]
+    eq_content = res_eq.content
+    assert len(eq_content) > 1000
+
+    # 2. Segments template
+    res_seg = await client.get("/api/imports/templates?type=segments", headers=headers)
+    assert res_seg.status_code == 200
+    assert "template_vlans_reseaux.xlsx" in res_seg.headers["content-disposition"]
+    assert len(res_seg.content) > 1000
+
+    # 3. Complete workbook template
+    res_comp = await client.get("/api/imports/templates?type=complete", headers=headers)
+    assert res_comp.status_code == 200
+    assert "template_import_inventaire_complet.xlsx" in res_comp.headers["content-disposition"]
+    assert len(res_comp.content) > 1000
+
+    # 4. Unauthorized without token
+    res_unauth = await client.get("/api/imports/templates?type=equipment")
+    assert res_unauth.status_code == 401

@@ -71,24 +71,45 @@ def normalize_header(header: str) -> str:
 
 
 def suggest_mapping(headers: list[str], target_type: str = "equipment") -> dict[str, str]:
-    """Auto-detect column mapping according to predefined synonyms."""
+    """Auto-detect column mapping according to predefined synonyms with precedence and word boundaries."""
     synonyms = EQUIPMENT_FIELD_SYNONYMS if target_type == "equipment" else SEGMENT_FIELD_SYNONYMS
     mapping: dict[str, str] = {}
     
     cleaned_headers = {h: normalize_header(h) for h in headers if h}
-    
+    used_headers = set()
+
+    # Pass 1: Exact matches (clean_h == target_field or clean_h in syn_list)
     for target_field, syn_list in synonyms.items():
-        matched = False
         for orig_h, clean_h in cleaned_headers.items():
-            if clean_h in syn_list or any(syn in clean_h for syn in syn_list):
+            if orig_h in used_headers:
+                continue
+            if clean_h == target_field or clean_h in syn_list:
                 mapping[orig_h] = target_field
-                matched = True
+                used_headers.add(orig_h)
                 break
-        if not matched:
-            for orig_h, clean_h in cleaned_headers.items():
-                if target_field == clean_h:
-                    mapping[orig_h] = target_field
-                    break
+
+    # Pass 2: Word boundary or substring matches for longer synonyms
+    for target_field, syn_list in synonyms.items():
+        if target_field in mapping.values():
+            continue
+        for orig_h, clean_h in cleaned_headers.items():
+            if orig_h in used_headers:
+                continue
+            matched = False
+            for syn in syn_list:
+                if len(syn) <= 2:
+                    # Require word boundary for short abbreviations like 'os', 'sn', 'ip'
+                    if re.search(r"\b" + re.escape(syn) + r"\b", clean_h):
+                        matched = True
+                        break
+                else:
+                    if syn in clean_h:
+                        matched = True
+                        break
+            if matched:
+                mapping[orig_h] = target_field
+                used_headers.add(orig_h)
+                break
 
     return mapping
 

@@ -2,8 +2,8 @@
 import json
 import uuid
 from datetime import datetime, timezone
-from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from typing import Any, Optional
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status, Response, Query, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_
 
@@ -22,11 +22,87 @@ from app.core.parsers.tabular import (
     parse_csv_content, parse_excel_bytes, suggest_mapping,
     transform_equipment_row, transform_segment_row
 )
+from app.core.parsers.template_generator import (
+    generate_equipment_template,
+    generate_segments_template,
+    generate_complete_template
+)
 from app.core.parsers.cisco import parse_cisco_ios
 from app.core.parsers.fortinet import parse_fortinet_cli
 from app.core.workflow_engine import verify_project_not_locked, invalidate_approvals_if_in_review
 
 router = APIRouter(prefix="/imports", tags=["Imports & Ingestion"])
+
+
+@router.get("/templates")
+async def download_import_template(
+    type: str = Query("equipment", description="Type de modèle: 'equipment', 'segments', ou 'complete'"),
+    token: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Télécharger un modèle Excel (.xlsx) pré-formaté avec styles et exemples guidés.
+    Types disponibles :
+    - 'equipment': Inventaire matériel (switches, routeurs, serveurs, IP...)
+    - 'segments': Plans d'adressage & VLANs (VLAN ID, CIDR, passerelle, DHCP...)
+    - 'complete': Classeur multi-onglets complet
+    """
+    auth_token = None
+    if authorization and authorization.startswith("Bearer "):
+        auth_token = authorization.split(" ", 1)[1].strip()
+    elif token:
+        auth_token = token.strip()
+
+    if not auth_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentification requise pour télécharger les modèles",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
+    from app.core.security import decode_access_token
+    payload = decode_access_token(auth_token)
+    if not payload or not payload.get("sub"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expirée ou token invalide",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
+    user_res = await db.execute(select(User).where(User.id == payload.get("sub")))
+    user = user_res.scalars().first()
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Compte inactif ou non autorisé"
+        )
+
+    normalized_type = type.lower().strip()
+    if normalized_type in ["equipment", "equipements", "materiels", "equipement"]:
+        file_stream = generate_equipment_template()
+        filename = "template_inventaire_equipements.xlsx"
+    elif normalized_type in ["segments", "network_segments", "vlans", "reseaux", "vlan"]:
+        file_stream = generate_segments_template()
+        filename = "template_vlans_reseaux.xlsx"
+    elif normalized_type in ["complete", "all", "tout"]:
+        file_stream = generate_complete_template()
+        filename = "template_import_inventaire_complet.xlsx"
+    else:
+        file_stream = generate_equipment_template()
+        filename = "template_inventaire_equipements.xlsx"
+
+    content = file_stream.getvalue()
+    media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(content)),
+        }
+    )
 
 
 @router.post("/upload", response_model=ImportUploadResponse, status_code=status.HTTP_201_CREATED)

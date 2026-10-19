@@ -62,6 +62,57 @@ export default function ImportsPage() {
   // Step 4: Final report state
   const [applyResult, setApplyResult] = useState<ImportApplyResponse | null>(null);
 
+  // Template download state
+  const [downloadingTemplate, setDownloadingTemplate] = useState<string | null>(null);
+
+  const handleDownloadTemplate = async (templateType: 'equipment' | 'segments' | 'complete') => {
+    try {
+      setDownloadingTemplate(templateType);
+      const token = typeof window !== 'undefined' ? localStorage.getItem('infradoc_token') : null;
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(`${apiBase}/api/imports/templates?type=${templateType}`, {
+        headers,
+      });
+
+      if (!res.ok) {
+        let msg = 'Erreur lors du téléchargement du modèle Excel';
+        try {
+          const err = await res.json();
+          msg = err.detail || msg;
+        } catch {}
+        throw new Error(msg);
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+
+      let filename = 'template_inventaire_equipements.xlsx';
+      if (templateType === 'segments') {
+        filename = 'template_vlans_reseaux.xlsx';
+      } else if (templateType === 'complete') {
+        filename = 'template_import_inventaire_complet.xlsx';
+      }
+
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err: any) {
+      alert(err.message || 'Impossible de télécharger le modèle Excel');
+    } finally {
+      setDownloadingTemplate(null);
+    }
+  };
+
   // History state
   const [importHistory, setImportHistory] = useState<ImportJob[]>([]);
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
@@ -389,6 +440,75 @@ export default function ImportsPage() {
                     Extraction des interfaces physiques, SVI, VLANs, et secrets masqués automatiquement.
                   </p>
                 </button>
+              </div>
+
+              {/* Excel Templates Download Section */}
+              <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/60 to-slate-50 border border-blue-200 rounded-xl p-4.5 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 bg-blue-600 text-white rounded-xl shrink-0 shadow-xs">
+                    <FileSpreadsheet className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xs font-bold text-slate-900">
+                        Modèles Excel pré-formatés à remplir
+                      </h3>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200 uppercase tracking-wide">
+                        Prêt à l'emploi
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                      Téléchargez une matrice pré-remplie avec en-têtes reconnus automatiquement, règles de validation, commentaires intégrés et exemples concrets.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadTemplate('equipment')}
+                    disabled={downloadingTemplate !== null}
+                    className="px-3 py-1.5 bg-white border border-slate-300 hover:border-blue-600 hover:text-blue-700 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
+                    title="Télécharger la matrice d'équipements avec colonnes types"
+                  >
+                    {downloadingTemplate === 'equipment' ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                    ) : (
+                      <Download className="w-3.5 h-3.5 text-blue-600" />
+                    )}
+                    <span>Modèle Équipements (.xlsx)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadTemplate('segments')}
+                    disabled={downloadingTemplate !== null}
+                    className="px-3 py-1.5 bg-white border border-slate-300 hover:border-indigo-600 hover:text-indigo-700 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
+                    title="Télécharger la matrice de plan d'adressage et VLANs"
+                  >
+                    {downloadingTemplate === 'segments' ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+                    ) : (
+                      <Download className="w-3.5 h-3.5 text-indigo-600" />
+                    )}
+                    <span>Modèle VLANs (.xlsx)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadTemplate('complete')}
+                    disabled={downloadingTemplate !== null}
+                    className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
+                    title="Télécharger le classeur multi-onglets complet (Équipements + VLANs + Guide)"
+                  >
+                    {downloadingTemplate === 'complete' ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Download className="w-3.5 h-3.5" />
+                    )}
+                    <span>Classeur Complet (.xlsx)</span>
+                  </button>
+                </div>
               </div>
 
               {/* Upload Dropzone */}
