@@ -1,0 +1,15 @@
+name,category,manufacturer,model,serial_number,management_ip,installation_status,verification_status,role
+sw-core-01,switch,Cisco,Catalyst 9500-48Y4C,FCW2438B001,10.10.10.254,in_service,verified,Commutateur de coeur de réseau DC1
+sw-core-02,switch,Cisco,Catalyst 9500-48Y4C,FCW2438B002,10.10.10.253,in_service,verified,Commutateur de coeur de réseau DC1 (redondant)
+rtr-wan-01,router,Cisco,ISR 4451-X,FGL2104101A,10.10.10.250,in_service,verified,Routeur de bordure WAN et inter-sites
+fw-edge-01,firewall,Fortinet,FortiGate 200F,FGT200FT19000101,10.10.10.1,in_service,verified,Pare-feu périmétrique primaire DC1 (HA A/P)
+fw-edge-02,firewall,Fortinet,FortiGate 200F,FGT200FT19000102,10.10.10.2,in_service,verified,Pare-feu périmétrique secondaire DC1 (HA A/P)
+srv-hyp-01,physical_server,Dell,PowerEdge R750xs,CN-0G3F2K-001,10.10.10.101,in_service,verified,Hyperviseur VMware ESXi 8.0 Cluster Prod
+srv-hyp-02,physical_server,Dell,PowerEdge R750xs,CN-0G3F2K-002,10.10.10.102,in_service,verified,Hyperviseur VMware ESXi 8.0 Cluster Prod
+srv-dc-01,physical_server,HPE,ProLiant DL360 Gen10,CZ2849001,10.10.20.10,in_service,verified,Contrôleur de domaine Windows Server 2022 / DNS
+vm-vcenter,virtual_machine,VMware,vCenter Server Appliance 8.0,N/A,10.10.10.50,in_service,verified,Gestionnaire centralisé de virtualisation vSphere
+san-powerstore-01,storage,Dell,PowerStore 1000T,CKM001923001,10.10.40.10,in_service,verified,Baie de stockage SAN NVMe-oF / iSCSI
+srv-veeam-01,physical_server,Dell,PowerEdge R450,CN-0V33K1-001,10.10.50.10,in_service,verified,Serveur d'orchestration de sauvegarde Veeam B&R v12
+nas-backup-target,storage,Synology,RackStation RS3621xs+,2130QSR0012,10.10.50.20,in_service,verified,Dépôt de sauvegarde immuable NAS
+srv-zabbix-mon,virtual_machine,Linux RHEL,RHEL 9.3 LTS,N/A,10.10.10.60,in_service,verified,Serveur de supervision et métrologie Zabbix
+gw-azure-expressroute,generic,Microsoft Azure,ExpressRoute Local Gateway,N/A,10.10.99.10,in_service,verified,Passerelle hybride Cloud Azure

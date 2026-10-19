@@ -1,0 +1,7 @@
+vlan_id,name,cidr,gateway,zone,dhcp_range,dns_servers,ntp_servers,description
+10,VLAN-MGMT-ADMIN,10.10.10.0/24,10.10.10.254,LAN,,10.10.10.1;10.10.10.2,10.10.10.10,Réseau d'administration out-of-band et management équipements
+20,VLAN-PRODUCTION-APPS,10.10.20.0/24,10.10.20.254,Production,10.10.20.100 - 10.10.20.200,10.10.20.10;10.10.10.1,10.10.10.10,Zone applicative et services métiers
+30,VLAN-DATABASE-ORACLE,10.10.30.0/24,10.10.30.254,Production,,10.10.20.10,10.10.10.10,Bases de données relationnelles Oracle et PostgreSQL
+40,VLAN-STORAGE-ISCSI,10.10.40.0/24,10.10.40.254,Storage,,,10.10.10.10,Réseau dédié stockage block iSCSI et multipathing Jumbo Frames
+50,VLAN-BACKUP-VEEAM,10.10.50.0/24,10.10.50.254,Backup,,10.10.20.10,10.10.10.10,Réseau isolé pour flux de sauvegarde et réplication de VM
+99,VLAN-DMZ-EXTERNE,10.10.99.0/24,10.10.99.254,DMZ,,1.1.1.1,10.10.10.10,Zone démilitarisée pour services web et rebonds sécurisés
