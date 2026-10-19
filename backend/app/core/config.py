@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     AI_ENABLED: bool = True
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     AI_MODEL_NAME: str = "qwen2.5-coder:7b"
+    OLLAMA_MODEL: str = "qwen2.5-coder:7b"
     AI_TIMEOUT_SECONDS: int = 120
     AI_MAX_CONTEXT_TOKENS: int = 8192
     AI_MAX_OUTPUT_TOKENS: int = 4096
