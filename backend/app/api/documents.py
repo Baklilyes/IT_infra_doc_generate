@@ -2,8 +2,8 @@
 import os
 import uuid
 from datetime import datetime, timezone
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Header
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, desc
@@ -203,10 +203,42 @@ async def list_project_documents(
 @router.get("/documents/{document_id}/download")
 async def download_document(
     document_id: str,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    token: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None),
+    db: AsyncSession = Depends(get_db)
 ):
     """Download a generated DOCX or PDF document."""
+    # Authenticate via Header or Query parameter
+    auth_token = None
+    if authorization and authorization.startswith("Bearer "):
+        auth_token = authorization.split(" ", 1)[1].strip()
+    elif token:
+        auth_token = token.strip()
+
+    if not auth_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentification requise pour télécharger ce document",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
+    from app.core.security import decode_access_token
+    payload = decode_access_token(auth_token)
+    if not payload or not payload.get("sub"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expirée ou token invalide",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
+    user_res = await db.execute(select(User).where(User.id == payload.get("sub")))
+    user = user_res.scalars().first()
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Compte inactif ou non autorisé"
+        )
+
     res = await db.execute(select(Document).where(Document.id == document_id))
     doc = res.scalars().first()
     if not doc:

@@ -52,6 +52,7 @@ export default function DocumentsPage() {
   const [docStatus, setDocStatus] = useState<DocumentStatusResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [generatingType, setGeneratingType] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Form options per document
@@ -134,6 +135,54 @@ export default function DocumentsPage() {
       await loadDocuments();
     } catch (err: any) {
       setErrorMsg(err.message || 'Erreur lors de la suppression.');
+    }
+  };
+
+  const handleDownload = async (doc: DocumentItem) => {
+    try {
+      setDownloadingId(doc.id);
+      const token = typeof window !== 'undefined' ? localStorage.getItem('infradoc_token') : null;
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(`${apiBase}/api/documents/${doc.id}/download`, {
+        headers,
+      });
+
+      if (!res.ok) {
+        let errorMsg = 'Erreur lors du téléchargement du document';
+        try {
+          const errJson = await res.json();
+          errorMsg = errJson.detail || errorMsg;
+        } catch {}
+        throw new Error(errorMsg);
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+
+      const ext = doc.file_format ? doc.file_format.toLowerCase() : 'pdf';
+      let filename = doc.title || `document_${doc.id}`;
+      if (!filename.toLowerCase().endsWith(`.${ext}`)) {
+        filename = `${filename}.${ext}`;
+      }
+      filename = filename.replace(/[/\\?%*:|"<>]/g, '_');
+
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err: any) {
+      alert(err.message || 'Impossible de télécharger le document');
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -387,14 +436,25 @@ export default function DocumentsPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <a
-                          href={doc.download_url}
-                          download
-                          className="px-2.5 py-1 bg-blue-600 text-white rounded text-[11px] font-semibold hover:bg-blue-700 flex items-center gap-1 shadow-2xs"
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(doc)}
+                          disabled={downloadingId === doc.id}
+                          className="px-2.5 py-1 bg-blue-600 text-white rounded text-[11px] font-semibold hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1 shadow-2xs cursor-pointer transition-colors"
+                          title="Télécharger ce document"
                         >
-                          <Download className="w-3 h-3" />
-                          Télécharger
-                        </a>
+                          {downloadingId === doc.id ? (
+                            <>
+                              <RefreshCw className="w-3 h-3 animate-spin" />
+                              Téléchargement...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-3 h-3" />
+                              Télécharger
+                            </>
+                          )}
+                        </button>
                         {!doc.is_locked && (
                           <button
                             onClick={() => handleDelete(doc.id)}
